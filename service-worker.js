@@ -1,4 +1,4 @@
-const CACHE = 'hashemi-fb-v3';
+const CACHE = 'hashemi-fb-v10';
 
 const ASSETS = [
   './',
@@ -42,13 +42,26 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Never cache JavaScript/config or Supabase/CDN requests.
+  // Never intercept JS, Supabase/CDN requests, auth/API calls, or config.
   if (
     url.origin !== location.origin ||
     url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.json') ||
     url.pathname.includes('/rest/') ||
     url.pathname.includes('/auth/')
-  ) {
+  ) return;
+
+  // Always try network first for HTML so deployments are immediately visible.
+  if (event.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname === '/') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
     return;
   }
 
