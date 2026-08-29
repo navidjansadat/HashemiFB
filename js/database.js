@@ -1,6 +1,8 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import {SUPABASE_URL,SUPABASE_ANON_KEY} from './config.js';
-if(SUPABASE_URL.includes('YOUR_')) console.warn('HASHEMI FB: Supabase config is not set.');
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes('YOUR_') || SUPABASE_ANON_KEY.includes('YOUR_')) {
+  throw new Error('HASHEMI FB: Supabase config is not set.');
+}
 export const supabase=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 export async function user(){const {data}=await supabase.auth.getUser();return data.user}
 export async function profile(){const u=await user();if(!u)return null;const {data}=await supabase.from('profiles').select('*').eq('id',u.id).maybeSingle();return data}

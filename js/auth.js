@@ -1,109 +1,115 @@
 import { supabase } from './database.js';
 
-const path = location.pathname;
+const page = location.pathname.split('/').pop();
 
-if (path.endsWith('login.html')) {
-    const form = document.getElementById('loginForm');
-    const msg = document.getElementById('msg');
+const byId = (id) => document.getElementById(id);
 
-    form?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-
-        msg.textContent = 'در حال ورود...';
-
-        try {
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password
-            });
-
-            if (error) {
-                msg.textContent = error.message;
-                return;
-            }
-
-            location.href = 'app.html';
-
-        } catch (error) {
-            msg.textContent = 'خطا: ' + error.message;
-        }
-    });
-
-    document.getElementById('forgot')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-
-        if (!email) {
-            msg.textContent = 'ابتدا ایمیل را وارد کنید.';
-            return;
-        }
-
-        const { error } = await supabase.auth.resetPasswordForEmail(
-            email,
-            {
-                redirectTo: location.origin + '/login.html'
-            }
-        );
-
-        msg.textContent = error
-            ? error.message
-            : 'لینک بازیابی رمز ارسال شد.';
-    });
+function show(msg, type = '') {
+  const el = byId('msg');
+  if (el) {
+    el.textContent = msg;
+    el.className = `message ${type}`.trim();
+  }
 }
 
+if (page === 'login.html') {
+  const form = byId('loginForm');
 
-if (path.endsWith('register.html')) {
-    const form = document.getElementById('registerForm');
-    const msg = document.getElementById('msg');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-    form?.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    const email = byId('email')?.value.trim() || '';
+    const password = byId('password')?.value || '';
 
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const password = document.getElementById('password').value;
-        const familyCode = document.getElementById('familyCode').value.trim();
+    show('در حال ورود...');
 
-        msg.textContent = 'در حال ساخت حساب...';
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-        if (password.length < 6) {
-            msg.textContent = 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
-            return;
+      if (error) {
+        show('خطا: ' + error.message, 'error');
+        return;
+      }
+
+      location.href = 'app.html';
+    } catch (err) {
+      show('خطا در اتصال: ' + (err?.message || err), 'error');
+    }
+  });
+
+  byId('forgot')?.addEventListener('click', async () => {
+    const email = byId('email')?.value.trim() || '';
+
+    if (!email) {
+      show('ابتدا ایمیل را وارد کنید.');
+      return;
+    }
+
+    show('در حال ارسال لینک بازیابی...');
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${location.origin}/login.html`
+      });
+
+      show(error ? 'خطا: ' + error.message : 'لینک بازیابی رمز ارسال شد.', error ? 'error' : 'success');
+    } catch (err) {
+      show('خطا: ' + (err?.message || err), 'error');
+    }
+  });
+}
+
+if (page === 'register.html') {
+  const form = byId('registerForm');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = byId('name')?.value.trim() || '';
+    const email = byId('email')?.value.trim() || '';
+    const phone = byId('phone')?.value.trim() || '';
+    const password = byId('password')?.value || '';
+    const familyCode = byId('familyCode')?.value.trim() || '';
+
+    show('در حال ساخت حساب...');
+
+    if (!name || !email || !familyCode) {
+      show('لطفاً نام، ایمیل و کد خانواده را کامل کنید.', 'error');
+      return;
+    }
+
+    if (password.length < 6) {
+      show('رمز عبور باید حداقل ۶ کاراکتر باشد.', 'error');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            phone,
+            family_code: familyCode
+          }
         }
+      });
 
-        try {
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: name,
-                        phone: phone,
-                        family_code: familyCode
-                    }
-                }
-            });
+      if (error) {
+        show('خطا: ' + error.message, 'error');
+        return;
+      }
 
-            if (error) {
-                msg.textContent = error.message;
-                return;
-            }
+      if (!data?.user) {
+        show('ثبت‌نام انجام شد. اگر تأیید ایمیل فعال باشد، ایمیل خود را بررسی کنید.', 'success');
+        return;
+      }
 
-            if (!data.user) {
-                msg.textContent = 'ثبت‌نام انجام شد.';
-                return;
-            }
-
-            msg.textContent =
-                'حساب با موفقیت ساخته شد. درخواست عضویت شما برای مدیر خانواده ارسال شد.';
-
-            form.reset();
-
-        } catch (error) {
-            msg.textContent = 'خطا در اتصال به Supabase: ' + error.message;
-        }
-    });
+      show('حساب ساخته شد. درخواست عضویت شما برای مدیر خانواده ارسال شد.', 'success');
+      form.reset();
+    } catch (err) {
+      show('خطا در اتصال به Supabase: ' + (err?.message || err), 'error');
+    }
+  });
 }
