@@ -1,14 +1,80 @@
-import {supabase,toast} from './database.js';
-const path=location.pathname;
-if(path.endsWith('login.html')){
-const form=document.querySelector('#loginForm'),msg=document.querySelector('#msg');
-form?.addEventListener('submit',async e=>{e.preventDefault();msg.textContent='در حال ورود...';const {error}=await supabase.auth.signInWithPassword({email:email.value,password:password.value});if(error){msg.textContent=error.message;return}location.href='app.html'});
-document.querySelector('#forgot')?.addEventListener('click',async()=>{const em=email.value;if(!em)return msg.textContent='ابتدا ایمیل را وارد کنید.';const {error}=await supabase.auth.resetPasswordForEmail(em,{redirectTo:location.origin+'/login.html'});msg.textContent=error?error.message:'لینک بازیابی ارسال شد.'});
-}else if(path.endsWith('register.html')){
-document.querySelector('#registerForm')?.addEventListener('submit',async e=>{e.preventDefault();const msg=document.querySelector('#msg');msg.textContent='در حال ساخت حساب...';
-const {data,error}=await supabase.auth.signUp({email:email.value,password:password.value,options:{data:{full_name:name.value,phone:phone.value,family_code:familyCode.value}}});
-if(error){msg.textContent=error.message;return}
-if(!data.user){msg.textContent='ثبت‌نام انجام شد. ایمیل خود را تأیید کنید.';return}
-msg.textContent='حساب ساخته شد. اگر ایمیل تأیید خواست، آن را تأیید کنید؛ سپس منتظر تأیید مدیر خانواده باشید.';
-});
+import { supabase } from './database.js';
+
+const path = location.pathname;
+
+if (path.endsWith('register.html')) {
+    const form = document.getElementById('registerForm');
+    const msg = document.getElementById('msg');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value;
+        const familyCode = document.getElementById('familyCode').value.trim();
+
+        msg.textContent = 'در حال ساخت حساب...';
+
+        if (password.length < 6) {
+            msg.textContent = 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: name,
+                        phone: phone,
+                        family_code: familyCode
+                    }
+                }
+            });
+
+            if (error) {
+                msg.textContent = error.message;
+                return;
+            }
+
+            if (data.user) {
+                msg.style.color = '#075e54';
+                msg.textContent =
+                    'ثبت‌نام موفق شد! ایمیل خود را بررسی کنید.';
+
+                form.reset();
+            }
+        } catch (error) {
+            msg.textContent = 'خطا در اتصال به سرور: ' + error.message;
+        }
+    });
+}
+
+if (path.endsWith('login.html')) {
+    const form = document.getElementById('loginForm');
+    const msg = document.getElementById('msg');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        msg.textContent = 'در حال ورود...';
+
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) {
+            msg.textContent = error.message;
+            return;
+        }
+
+        location.href = 'app.html';
+    });
 }
