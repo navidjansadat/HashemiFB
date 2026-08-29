@@ -22,3 +22,17 @@
 
 ## محدودیت نسخه
 ذخیره موقعیت مکانی، اعلان Push واقعی و تماس صوتی/تصویری در این نسخه پایه پیاده نشده‌اند؛ معماری پروژه برای افزودن آنها آماده است.
+
+
+## HASHEMI FB — Clean deployment
+
+1. Run `supabase.sql` once in Supabase SQL Editor.
+2. Confirm Authentication > Providers > Email is enabled.
+3. If you want password login without email confirmation during setup, disable Confirm email.
+4. In Authentication > URL Configuration set Site URL to your Netlify URL.
+5. Deploy this folder to Netlify from GitHub.
+6. Register the first account with family code `HASHEMI-2026`.
+7. In Supabase Table Editor > `profiles`, set that first account to `role=admin` and `status=approved`.
+8. Other family members register with the same family code and remain pending until the admin approves them.
+
+The service worker deliberately does not cache JavaScript/config files, preventing stale Supabase configuration from being served.

@@ -9,6 +9,11 @@ create table if not exists public.families (
   created_at timestamptz not null default now()
 );
 
+-- Default private family used by the app.
+insert into public.families(name, code)
+values ('خانواده هاشمی', 'HASHEMI-2026')
+on conflict (code) do nothing;
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
@@ -89,6 +94,30 @@ alter table public.comments enable row level security;
 alter table public.messages enable row level security;
 alter table public.notifications enable row level security;
 
+
+-- Make policy creation safe if this SQL is re-run.
+drop policy if exists "profile read family" on public.profiles;
+drop policy if exists "profile insert self" on public.profiles;
+drop policy if exists "profile update self/admin" on public.profiles;
+drop policy if exists "family read member" on public.families;
+drop policy if exists "posts read family" on public.posts;
+drop policy if exists "posts insert own" on public.posts;
+drop policy if exists "posts delete own/admin" on public.posts;
+drop policy if exists "likes read family" on public.likes;
+drop policy if exists "likes insert own" on public.likes;
+drop policy if exists "likes delete own" on public.likes;
+drop policy if exists "comments read family" on public.comments;
+drop policy if exists "comments insert own" on public.comments;
+drop policy if exists "comments delete own/admin" on public.comments;
+drop policy if exists "messages read participants" on public.messages;
+drop policy if exists "messages insert sender" on public.messages;
+drop policy if exists "messages delete sender" on public.messages;
+drop policy if exists "notifications own read" on public.notifications;
+drop policy if exists "notifications own update" on public.notifications;
+drop policy if exists "family media read" on storage.objects;
+drop policy if exists "family media upload" on storage.objects;
+drop policy if exists "family media delete own folder" on storage.objects;
+
 -- Profiles: users can see approved members of their family; users can update themselves.
 create policy "profile read family" on public.profiles for select using (
   id=auth.uid() or (family_id=current_family_id() and status='approved') or public.is_admin(family_id)
@@ -168,8 +197,7 @@ create trigger comments_count after insert or delete on public.comments for each
 alter publication supabase_realtime add table public.posts;
 alter publication supabase_realtime add table public.messages;
 
--- IMPORTANT FIRST SETUP:
--- Create one family manually:
--- insert into public.families(name,code) values('خانواده هاشمی','HASHEMI-2026');
--- Then register the first account using that code.
--- After registration, in Table Editor > profiles set that user's role='admin', status='approved'.
+-- FIRST ADMIN SETUP:
+-- After the first account is registered, set that profile to:
+-- role='admin', status='approved'
+-- in Table Editor > profiles.
