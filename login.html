@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest.json"><link rel="stylesheet" href="css/main.css"><link rel="stylesheet" href="css/animations.css"><title>ورود | HASHEMI FB</title>
+</head><body>
+<main class="auth-page"><section class="auth-card glass">
+<div class="brand-mark">H</div><h1>HASHEMI FB</h1><p class="muted">شبکه اجتماعی خصوصی خانواده</p>
+<form id="loginForm"><label>ایمیل</label><input id="email" type="email" required autocomplete="email" placeholder="example@email.com">
+<label>رمز عبور</label><input id="password" type="password" required autocomplete="current-password" placeholder="حداقل ۶ کاراکتر">
+<button class="btn primary" type="submit">ورود</button></form>
+<div class="auth-links"><a href="register.html">حساب ندارید؟ ثبت‌نام</a><button id="forgot" class="link-btn">بازیابی رمز</button></div>
+<p id="msg" class="message"></p></section></main>
+<script type="module" src="js/auth.js"></script><script>if('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');</script></body></html>

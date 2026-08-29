@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest.json"><link rel="stylesheet" href="css/main.css"><link rel="stylesheet" href="css/animations.css"><title>ثبت‌نام | HASHEMI FB</title>
+</head><body><main class="auth-page"><section class="auth-card glass">
+<div class="brand-mark">H</div><h1>ایجاد حساب</h1><p class="muted">به خانواده HASHEMI بپیوندید</p>
+<form id="registerForm">
+<label>نام</label><input id="name" required maxlength="60" placeholder="نام شما">
+<label>ایمیل</label><input id="email" type="email" required placeholder="example@email.com">
+<label>شماره موبایل <span class="muted">(اختیاری)</span></label><input id="phone" inputmode="tel" maxlength="30" placeholder="07xxxxxxxxx">
+<label>رمز عبور</label><input id="password" type="password" minlength="6" required placeholder="حداقل ۶ کاراکتر">
+<label>کد خانواده</label><input id="familyCode" required maxlength="40" placeholder="مثلاً HASHEMI-2026">
+<button class="btn primary" type="submit">ثبت‌نام و درخواست عضویت</button></form>
+<p class="muted small">بعد از ثبت‌نام، مدیر خانواده باید درخواست شما را تأیید کند.</p>
+<a href="login.html">قبلاً حساب دارید؟ ورود</a><p id="msg" class="message"></p>
+</section></main><script type="module" src="js/auth.js"></script><script>if('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');</script></body></html>
